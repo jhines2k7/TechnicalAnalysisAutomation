@@ -423,7 +423,7 @@ def plot_hs(candle_data: pd.DataFrame, pat: HSPattern, pad: int = 2):
     plt.show()
 
 if __name__ == '__main__':
-    data = pd.read_csv('BTCUSDT3600.csv')
+    data = pd.read_csv('BTCUSDT86400.csv')
     data['date'] = data['date'].astype('datetime64[s]')
     data = data.set_index('date')
 

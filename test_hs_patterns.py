@@ -5,7 +5,7 @@ import mplfinance as mpf
 from head_shoulders import find_hs_patterns, get_pattern_return
     
 
-data = pd.read_csv('BTCUSDT3600.csv')
+data = pd.read_csv('EURUSD_past_730_days.csv')
 data['date'] = data['date'].astype('datetime64[s]')
 data = data.set_index('date')
 
@@ -424,10 +424,3 @@ ax[1,1].set_title('Win Rate')
 ax[1,1].set_xlabel('Order Parameter')
 ax[1,1].set_ylabel('Win Rate Percentage')
 plt.show()
-
-
-
-
-
-
-    

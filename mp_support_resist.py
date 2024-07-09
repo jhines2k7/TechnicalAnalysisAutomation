@@ -119,10 +119,24 @@ def get_trades_from_signal(data: pd.DataFrame, signal: np.array):
 
 
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
    
+#     # Trend following strategy
+#     data = pd.read_csv('BTCUSDT86400.csv')
+#     data['date'] = data['date'].astype('datetime64[s]')
+#     data = data.set_index('date')
+#     plt.style.use('dark_background') 
+#     levels = support_resistance_levels(data, 365, first_w=1.0, atr_mult=3.0)
+
+#     data['sr_signal'] = sr_penetration_signal(data, levels)
+#     data['log_ret'] = np.log(data['close']).diff().shift(-1)
+#     data['sr_return'] = data['sr_signal'] * data['log_ret']
+
+#     long_trades, short_trades = get_trades_from_signal(data, data['sr_signal'].to_numpy())
+
+if __name__ == '__main__':
     # Trend following strategy
-    data = pd.read_csv('BTCUSDT86400.csv')
+    data = pd.read_csv('EURUSD_H1_past_730_days.csv')
     data['date'] = data['date'].astype('datetime64[s]')
     data = data.set_index('date')
     plt.style.use('dark_background') 
@@ -133,5 +147,30 @@ if __name__ == '__main__':
     data['sr_return'] = data['sr_signal'] * data['log_ret']
 
     long_trades, short_trades = get_trades_from_signal(data, data['sr_signal'].to_numpy())
+
+    # Plotting
+    plt.figure(figsize=(14, 7))
+    
+    plt.plot(data.index, data['close'], label='Close Price', color='blue')
+    
+    # Plot support and resistance levels
+    for i in range(len(levels)):
+        if levels[i] is not None:
+            for level in levels[i]:
+                plt.axhline(y=level, color='gray', linestyle='--', alpha=0.5)
+    
+    # Plot signals
+    buy_signals = data[data['sr_signal'] == 1.0]
+    sell_signals = data[data['sr_signal'] == -1.0]
+    
+    plt.plot(buy_signals.index, buy_signals['close'], '^', markersize=10, color='green', lw=0, label='Buy Signal')
+    plt.plot(sell_signals.index, sell_signals['close'], 'v', markersize=10, color='red', lw=0, label='Sell Signal')
+    
+    plt.title('Support and Resistance Levels with Trading Signals')
+    plt.xlabel('Date')
+    plt.ylabel('Price')
+    plt.legend()
+    plt.show()
+
 
 
