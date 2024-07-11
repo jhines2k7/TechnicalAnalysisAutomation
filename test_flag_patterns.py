@@ -5,7 +5,9 @@ import matplotlib.pyplot as plt
 import mplfinance as mpf
 import csv
 import shutil
+import MetaTrader5 as mt5
 
+from datetime import datetime, timezone
 from flags_pennants import find_flags_pennants_pips, find_flags_pennants_trendline
 
 def export_to_csv(data, filename):
@@ -16,13 +18,59 @@ def export_to_csv(data, filename):
         for row in data:
             writer.writerow(row.values())    
 
-data = pd.read_csv('EURUSD900b.csv')
-data['date'] = data['date'].astype('datetime64[s]')
-data = data.set_index('date')
+# display data on the MetaTrader 5 package
+print("MetaTrader5 package author: ",mt5.__author__)
+print("MetaTrader5 package version: ",mt5.__version__)
 
-data = np.log(data)
-dat_slice = data['close'].to_numpy()
+# establish connection to the MetaTrader 5 terminal
+if not mt5.initialize():
+    print("initialize() failed, error code =",mt5.last_error())
+    quit()
+    
+account=6303079
+password="Q*Of0eSg"
+server = "OANDA-Demo-1"
+authorized=mt5.login(account, password=password, server=server)
 
+# data = pd.read_csv('EURUSD900b.csv')
+data = None
+dat_slice = None
+
+if authorized:
+    # Set the symbol and timeframe
+    symbol = "EURUSD.sml"
+    timeframe = mt5.TIMEFRAME_M5
+
+    # Real-time trading loop
+    # Get the latest price data
+    utc_from = datetime.now(timezone.utc) - pd.Timedelta(days=1)  # Fetch the last 5 days of data for pattern detection
+    # rates = mt5.copy_rates_range(symbol, timeframe, utc_from, datetime.utcnow())
+    rates = mt5.copy_rates_range(symbol, timeframe, utc_from, datetime.now(timezone.utc))
+
+    if rates is None:
+        print("No data, retrying...")
+        datetime.time.sleep(60)
+
+    # Create a DataFrame
+    data = pd.DataFrame(rates)
+
+    # Convert time in seconds to datetime
+    data['time'] = pd.to_datetime(data['time'], unit='s')
+    # Remove the last three columns
+    data = data.iloc[:, :-3]
+
+    # rearrange columns date,close,open,high,low
+    data = data[['time', 'close', 'open', 'high', 'low']]
+    data['time'] = data['time'].astype('datetime64[s]')
+    data = data.set_index('time')
+
+    data = np.log(data)
+    dat_slice = data['close'].to_numpy()
+else:
+    print("failed to connect at account #{}, error code: {}".format(account, mt5.last_error()))
+
+# Shut down connection to MetaTrader 5
+mt5.shutdown()
 
 orders = list(range(3, 49))
 bull_flag_wr = []
@@ -214,23 +262,22 @@ if os.path.exists('results'):
 # Plotting Bull Flag Performance
 fig, ax = plt.subplots(2, 2, figsize=(20, 10))
 fig.suptitle("Bull Flag Performance", fontsize=20)
-# results_df['bull_flag_count'].plot.bar(ax=ax[0,0])
-# results_df['bull_flag_avg'].plot.bar(ax=ax[0,1], color='yellow')
-# results_df['bull_flag_total'].plot.bar(ax=ax[1,0], color='green')
-# results_df['bull_flag_wr'].plot.bar(ax=ax[1,1], color='orange')
+results_df['bull_flag_count'].plot.bar(ax=ax[0,0])
+results_df['bull_flag_avg'].plot.bar(ax=ax[0,1], color='yellow')
+results_df['bull_flag_total'].plot.bar(ax=ax[1,0], color='green')
+results_df['bull_flag_wr'].plot.bar(ax=ax[1,1], color='orange')
 
 # Plotting the results with explicit x-ticks
-ax[0,0].bar(orders, results_df['bull_flag_count'])
-ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
-ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
-ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
+# ax[0,0].bar(orders, results_df['bull_flag_count'])
+# ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
+# ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
+# ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
 
 # Adjusting x-axis labels
 for a in ax.flat:
-    a.set_xlabel('Order Parameter', fontsize=12)
-    a.set_xticks(orders)
+    a.set_xlabel('Order Parameter', fontsize=12)    
     a.set_ylabel(a.get_ylabel(), fontsize=12)
-    a.set_xticklabels(orders, rotation=45, ha='right', fontsize=10)
+    a.set_xticklabels(range(len(orders)), rotation=45, ha='right', fontsize=10)
 
 ax[0,0].set_title('Number of Patterns Found', fontsize=14)
 ax[0,0].set_ylabel('Number of Patterns', fontsize=12)
@@ -248,23 +295,22 @@ plt.show()
 # Plotting Bear Flag Performance
 fig, ax = plt.subplots(2, 2, figsize=(20, 10))
 fig.suptitle("Bear Flag Performance", fontsize=20)
-# results_df['bear_flag_count'].plot.bar(ax=ax[0,0])
-# results_df['bear_flag_avg'].plot.bar(ax=ax[0,1], color='yellow')
-# results_df['bear_flag_total'].plot.bar(ax=ax[1,0], color='green')
-# results_df['bear_flag_wr'].plot.bar(ax=ax[1,1], color='orange')
+results_df['bear_flag_count'].plot.bar(ax=ax[0,0])
+results_df['bear_flag_avg'].plot.bar(ax=ax[0,1], color='yellow')
+results_df['bear_flag_total'].plot.bar(ax=ax[1,0], color='green')
+results_df['bear_flag_wr'].plot.bar(ax=ax[1,1], color='orange')
 
 # Plotting the results with explicit x-ticks
-ax[0,0].bar(orders, results_df['bull_flag_count'])
-ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
-ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
-ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
+# ax[0,0].bar(orders, results_df['bull_flag_count'])
+# ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
+# ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
+# ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
 
 # Adjusting x-axis labels
 for a in ax.flat:
-    a.set_xlabel('Order Parameter', fontsize=12)
-    a.set_xticks(orders)
+    a.set_xlabel('Order Parameter', fontsize=12)    
     a.set_ylabel(a.get_ylabel(), fontsize=12)
-    a.set_xticklabels(orders, rotation=45, ha='right', fontsize=10)
+    a.set_xticklabels(range(len(orders)), rotation=45, ha='right', fontsize=10)
 
 ax[0,0].set_title('Number of Patterns Found', fontsize=14)
 ax[0,0].set_ylabel('Number of Patterns', fontsize=12)
@@ -282,23 +328,22 @@ plt.show()
 # Plotting Bull Pennant Performance
 fig, ax = plt.subplots(2, 2, figsize=(20, 10))
 fig.suptitle("Bull Pennant Performance", fontsize=20)
-# results_df['bull_pennant_count'].plot.bar(ax=ax[0,0])
-# results_df['bull_pennant_avg'].plot.bar(ax=ax[0,1], color='yellow')
-# results_df['bull_pennant_total'].plot.bar(ax=ax[1,0], color='green')
-# results_df['bull_pennant_wr'].plot.bar(ax=ax[1,1], color='orange')
+results_df['bull_pennant_count'].plot.bar(ax=ax[0,0])
+results_df['bull_pennant_avg'].plot.bar(ax=ax[0,1], color='yellow')
+results_df['bull_pennant_total'].plot.bar(ax=ax[1,0], color='green')
+results_df['bull_pennant_wr'].plot.bar(ax=ax[1,1], color='orange')
 
 # Plotting the results with explicit x-ticks
-ax[0,0].bar(orders, results_df['bull_flag_count'])
-ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
-ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
-ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
+# ax[0,0].bar(orders, results_df['bull_flag_count'])
+# ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
+# ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
+# ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
 
 # Adjusting x-axis labels
 for a in ax.flat:
-    a.set_xlabel('Order Parameter', fontsize=12)
-    a.set_xticks(orders)
+    a.set_xlabel('Order Parameter', fontsize=12)    
     a.set_ylabel(a.get_ylabel(), fontsize=12)
-    a.set_xticklabels(orders, rotation=45, ha='right', fontsize=10)
+    a.set_xticklabels(range(len(orders)), rotation=45, ha='right', fontsize=10)
 
 ax[0,0].set_title('Number of Patterns Found', fontsize=14)
 ax[0,0].set_ylabel('Number of Patterns', fontsize=12)
@@ -316,23 +361,22 @@ plt.show()
 # Plotting Bear Pennant Performance
 fig, ax = plt.subplots(2, 2, figsize=(20, 10))
 fig.suptitle("Bear Pennant Performance", fontsize=20)
-# results_df['bear_pennant_count'].plot.bar(ax=ax[0,0])
-# results_df['bear_pennant_avg'].plot.bar(ax=ax[0,1], color='yellow')
-# results_df['bear_pennant_total'].plot.bar(ax=ax[1,0], color='green')
-# results_df['bear_pennant_wr'].plot.bar(ax=ax[1,1], color='orange')
+results_df['bear_pennant_count'].plot.bar(ax=ax[0,0])
+results_df['bear_pennant_avg'].plot.bar(ax=ax[0,1], color='yellow')
+results_df['bear_pennant_total'].plot.bar(ax=ax[1,0], color='green')
+results_df['bear_pennant_wr'].plot.bar(ax=ax[1,1], color='orange')
 
 # Plotting the results with explicit x-ticks
-ax[0,0].bar(orders, results_df['bull_flag_count'])
-ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
-ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
-ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
+# ax[0,0].bar(orders, results_df['bull_flag_count'])
+# ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
+# ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
+# ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
 
 # Adjusting x-axis labels
 for a in ax.flat:
-    a.set_xlabel('Order Parameter', fontsize=12)
-    a.set_xticks(orders)
+    a.set_xlabel('Order Parameter', fontsize=12)    
     a.set_ylabel(a.get_ylabel(), fontsize=12)
-    a.set_xticklabels(orders, rotation=45, ha='right', fontsize=10)
+    a.set_xticklabels(range(len(orders)), rotation=45, ha='right', fontsize=10)
 
 ax[0,0].set_title('Number of Patterns Found', fontsize=14)
 ax[0,0].set_ylabel('Number of Patterns', fontsize=12)
