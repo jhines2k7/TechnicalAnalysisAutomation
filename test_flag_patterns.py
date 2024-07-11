@@ -1,11 +1,22 @@
+import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import mplfinance as mpf
-from flags_pennants import find_flags_pennants_pips, find_flags_pennants_trendline
-    
+import csv
+import shutil
 
-data = pd.read_csv('BTCUSDT3600.csv')
+from flags_pennants import find_flags_pennants_pips, find_flags_pennants_trendline
+
+def export_to_csv(data, filename):
+    with open(filename, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        headers = data[0].keys()  # Assuming data is a list of dictionaries
+        writer.writerow(headers)
+        for row in data:
+            writer.writerow(row.values())    
+
+data = pd.read_csv('EURUSD900b.csv')
 data['date'] = data['date'].astype('datetime64[s]')
 data = data.set_index('date')
 
@@ -166,98 +177,170 @@ results_df['bear_pennant_avg'] = bear_pennant_avg
 results_df['bear_pennant_wr'] = bear_pennant_wr
 results_df['bear_pennant_total'] = bear_pennant_total_ret
 
-# Plot bull flag results
-plt.style.use('dark_background')
-fig, ax = plt.subplots(2, 2)
+results_df = pd.DataFrame({
+    'order': orders,
+    'bull_flag_count': np.random.randint(50, 150, size=len(orders)),
+    'bull_flag_avg': np.random.uniform(-0.01, 0.01, size=len(orders)),
+    'bull_flag_total': np.random.uniform(-1, 1, size=len(orders)),
+    'bull_flag_wr': np.random.uniform(0.3, 0.7, size=len(orders)),
+    'bull_pennant_count': np.random.randint(50, 150, size=len(orders)),
+    'bull_pennant_avg': np.random.uniform(-0.01, 0.01, size=len(orders)),
+    'bull_pennant_total': np.random.uniform(-1, 1, size=len(orders)),
+    'bull_pennant_wr': np.random.uniform(0.3, 0.7, size=len(orders)),
+    'bear_flag_count': np.random.randint(50, 150, size=len(orders)),
+    'bear_flag_avg': np.random.uniform(-0.01, 0.01, size=len(orders)),
+    'bear_flag_total': np.random.uniform(-1, 1, size=len(orders)),
+    'bear_flag_wr': np.random.uniform(0.3, 0.7, size=len(orders)),
+    'bear_pennant_count': np.random.randint(50, 150, size=len(orders)),
+    'bear_pennant_avg': np.random.uniform(-0.01, 0.01, size=len(orders)),
+    'bear_pennant_total': np.random.uniform(-1, 1, size=len(orders)),
+    'bear_pennant_wr': np.random.uniform(0.3, 0.7, size=len(orders))
+})
+
+# delete the plot_images folder if it exists
+if os.path.exists('plot_images'):
+    shutil.rmtree('plot_images')
+    os.makedirs('plot_images')
+
+if os.path.exists('results'):
+    shutil.rmtree('results')
+    os.makedirs('results')
+
+# Export results DataFrame to CSV
+# export_to_csv(results_df, 'results_summary.csv')
+
+# Plotting Bull Flag Performance
+fig, ax = plt.subplots(2, 2, figsize=(20, 10))
 fig.suptitle("Bull Flag Performance", fontsize=20)
-results_df['bull_flag_count'].plot.bar(ax=ax[0,0])
-results_df['bull_flag_avg'].plot.bar(ax=ax[0,1], color='yellow')
-results_df['bull_flag_total'].plot.bar(ax=ax[1,0], color='green')
-results_df['bull_flag_wr'].plot.bar(ax=ax[1,1], color='orange')
-ax[0,1].hlines(0.0, xmin=-1, xmax=len(orders), color='white')
-ax[1,0].hlines(0.0, xmin=-1, xmax=len(orders), color='white')
-ax[1,1].hlines(0.5, xmin=-1, xmax=len(orders), color='white')
-ax[0,0].set_title('Number of Patterns Found')
-ax[0,0].set_xlabel('Order Parameter')
-ax[0,0].set_ylabel('Number of Patterns')
-ax[0,1].set_title('Average Pattern Return')
-ax[0,1].set_xlabel('Order Parameter')
-ax[0,1].set_ylabel('Average Log Return')
-ax[1,0].set_title('Sum of Returns')
-ax[1,0].set_xlabel('Order Parameter')
-ax[1,0].set_ylabel('Total Log Return')
-ax[1,1].set_title('Win Rate')
-ax[1,1].set_xlabel('Order Parameter')
-ax[1,1].set_ylabel('Win Rate Percentage')
+# results_df['bull_flag_count'].plot.bar(ax=ax[0,0])
+# results_df['bull_flag_avg'].plot.bar(ax=ax[0,1], color='yellow')
+# results_df['bull_flag_total'].plot.bar(ax=ax[1,0], color='green')
+# results_df['bull_flag_wr'].plot.bar(ax=ax[1,1], color='orange')
 
+# Plotting the results with explicit x-ticks
+ax[0,0].bar(orders, results_df['bull_flag_count'])
+ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
+ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
+ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
+
+# Adjusting x-axis labels
+for a in ax.flat:
+    a.set_xlabel('Order Parameter', fontsize=12)
+    a.set_xticks(orders)
+    a.set_ylabel(a.get_ylabel(), fontsize=12)
+    a.set_xticklabels(orders, rotation=45, ha='right', fontsize=10)
+
+ax[0,0].set_title('Number of Patterns Found', fontsize=14)
+ax[0,0].set_ylabel('Number of Patterns', fontsize=12)
+ax[0,1].set_title('Average Pattern Return', fontsize=14)
+ax[0,1].set_ylabel('Average Log Return', fontsize=12)
+ax[1,0].set_title('Sum of Returns', fontsize=14)
+ax[1,0].set_ylabel('Total Log Return', fontsize=12)
+ax[1,1].set_title('Win Rate', fontsize=14)
+ax[1,1].set_ylabel('Win Rate Percentage', fontsize=12)
+plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+# save plot image
+plt.savefig('plot_images/bull_flag_performance.png')
 plt.show()
 
-fig, ax = plt.subplots(2, 2)
+# Plotting Bear Flag Performance
+fig, ax = plt.subplots(2, 2, figsize=(20, 10))
 fig.suptitle("Bear Flag Performance", fontsize=20)
-results_df['bear_flag_count'].plot.bar(ax=ax[0,0])
-results_df['bear_flag_avg'].plot.bar(ax=ax[0,1], color='yellow')
-results_df['bear_flag_total'].plot.bar(ax=ax[1,0], color='green')
-results_df['bear_flag_wr'].plot.bar(ax=ax[1,1], color='orange')
-ax[0,1].hlines(0.0, xmin=-1, xmax=len(orders), color='white')
-ax[1,0].hlines(0.0, xmin=-1, xmax=len(orders), color='white')
-ax[1,1].hlines(0.5, xmin=-1, xmax=len(orders), color='white')
-ax[0,0].set_title('Number of Patterns Found')
-ax[0,0].set_xlabel('Order Parameter')
-ax[0,0].set_ylabel('Number of Patterns')
-ax[0,1].set_title('Average Pattern Return')
-ax[0,1].set_xlabel('Order Parameter')
-ax[0,1].set_ylabel('Average Log Return')
-ax[1,0].set_title('Sum of Returns')
-ax[1,0].set_xlabel('Order Parameter')
-ax[1,0].set_ylabel('Total Log Return')
-ax[1,1].set_title('Win Rate')
-ax[1,1].set_xlabel('Order Parameter')
-ax[1,1].set_ylabel('Win Rate Percentage')
+# results_df['bear_flag_count'].plot.bar(ax=ax[0,0])
+# results_df['bear_flag_avg'].plot.bar(ax=ax[0,1], color='yellow')
+# results_df['bear_flag_total'].plot.bar(ax=ax[1,0], color='green')
+# results_df['bear_flag_wr'].plot.bar(ax=ax[1,1], color='orange')
+
+# Plotting the results with explicit x-ticks
+ax[0,0].bar(orders, results_df['bull_flag_count'])
+ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
+ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
+ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
+
+# Adjusting x-axis labels
+for a in ax.flat:
+    a.set_xlabel('Order Parameter', fontsize=12)
+    a.set_xticks(orders)
+    a.set_ylabel(a.get_ylabel(), fontsize=12)
+    a.set_xticklabels(orders, rotation=45, ha='right', fontsize=10)
+
+ax[0,0].set_title('Number of Patterns Found', fontsize=14)
+ax[0,0].set_ylabel('Number of Patterns', fontsize=12)
+ax[0,1].set_title('Average Pattern Return', fontsize=14)
+ax[0,1].set_ylabel('Average Log Return', fontsize=12)
+ax[1,0].set_title('Sum of Returns', fontsize=14)
+ax[1,0].set_ylabel('Total Log Return', fontsize=12)
+ax[1,1].set_title('Win Rate', fontsize=14)
+ax[1,1].set_ylabel('Win Rate Percentage', fontsize=12)
+plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+# save plot image
+plt.savefig('plot_images/bear_flag_performance.png')
 plt.show()
 
-fig, ax = plt.subplots(2, 2)
+# Plotting Bull Pennant Performance
+fig, ax = plt.subplots(2, 2, figsize=(20, 10))
 fig.suptitle("Bull Pennant Performance", fontsize=20)
-results_df['bull_pennant_count'].plot.bar(ax=ax[0,0])
-results_df['bull_pennant_avg'].plot.bar(ax=ax[0,1], color='yellow')
-results_df['bull_pennant_total'].plot.bar(ax=ax[1,0], color='green')
-results_df['bull_pennant_wr'].plot.bar(ax=ax[1,1], color='orange')
-ax[0,1].hlines(0.0, xmin=-1, xmax=len(orders), color='white')
-ax[1,0].hlines(0.0, xmin=-1, xmax=len(orders), color='white')
-ax[1,1].hlines(0.5, xmin=-1, xmax=len(orders), color='white')
-ax[0,0].set_title('Number of Patterns Found')
-ax[0,0].set_xlabel('Order Parameter')
-ax[0,0].set_ylabel('Number of Patterns')
-ax[0,1].set_title('Average Pattern Return')
-ax[0,1].set_xlabel('Order Parameter')
-ax[0,1].set_ylabel('Average Log Return')
-ax[1,0].set_title('Sum of Returns')
-ax[1,0].set_xlabel('Order Parameter')
-ax[1,0].set_ylabel('Total Log Return')
-ax[1,1].set_title('Win Rate')
-ax[1,1].set_xlabel('Order Parameter')
-ax[1,1].set_ylabel('Win Rate Percentage')
+# results_df['bull_pennant_count'].plot.bar(ax=ax[0,0])
+# results_df['bull_pennant_avg'].plot.bar(ax=ax[0,1], color='yellow')
+# results_df['bull_pennant_total'].plot.bar(ax=ax[1,0], color='green')
+# results_df['bull_pennant_wr'].plot.bar(ax=ax[1,1], color='orange')
+
+# Plotting the results with explicit x-ticks
+ax[0,0].bar(orders, results_df['bull_flag_count'])
+ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
+ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
+ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
+
+# Adjusting x-axis labels
+for a in ax.flat:
+    a.set_xlabel('Order Parameter', fontsize=12)
+    a.set_xticks(orders)
+    a.set_ylabel(a.get_ylabel(), fontsize=12)
+    a.set_xticklabels(orders, rotation=45, ha='right', fontsize=10)
+
+ax[0,0].set_title('Number of Patterns Found', fontsize=14)
+ax[0,0].set_ylabel('Number of Patterns', fontsize=12)
+ax[0,1].set_title('Average Pattern Return', fontsize=14)
+ax[0,1].set_ylabel('Average Log Return', fontsize=12)
+ax[1,0].set_title('Sum of Returns', fontsize=14)
+ax[1,0].set_ylabel('Total Log Return', fontsize=12)
+ax[1,1].set_title('Win Rate', fontsize=14)
+ax[1,1].set_ylabel('Win Rate Percentage', fontsize=12)
+plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+# save plot image
+plt.savefig('plot_images/bull_pennant_performance.png')
 plt.show()
 
-fig, ax = plt.subplots(2, 2)
+# Plotting Bear Pennant Performance
+fig, ax = plt.subplots(2, 2, figsize=(20, 10))
 fig.suptitle("Bear Pennant Performance", fontsize=20)
-results_df['bear_pennant_count'].plot.bar(ax=ax[0,0])
-results_df['bear_pennant_avg'].plot.bar(ax=ax[0,1], color='yellow')
-results_df['bear_pennant_total'].plot.bar(ax=ax[1,0], color='green')
-results_df['bear_pennant_wr'].plot.bar(ax=ax[1,1], color='orange')
-ax[0,1].hlines(0.0, xmin=-1, xmax=len(orders), color='white')
-ax[1,0].hlines(0.0, xmin=-1, xmax=len(orders), color='white')
-ax[1,1].hlines(0.5, xmin=-1, xmax=len(orders), color='white')
-ax[0,0].set_title('Number of Patterns Found')
-ax[0,0].set_xlabel('Order Parameter')
-ax[0,0].set_ylabel('Number of Patterns')
-ax[0,1].set_title('Average Pattern Return')
-ax[0,1].set_xlabel('Order Parameter')
-ax[0,1].set_ylabel('Average Log Return')
-ax[1,0].set_title('Sum of Returns')
-ax[1,0].set_xlabel('Order Parameter')
-ax[1,0].set_ylabel('Total Log Return')
-ax[1,1].set_title('Win Rate')
-ax[1,1].set_xlabel('Order Parameter')
-ax[1,1].set_ylabel('Win Rate Percentage')
-plt.show()
+# results_df['bear_pennant_count'].plot.bar(ax=ax[0,0])
+# results_df['bear_pennant_avg'].plot.bar(ax=ax[0,1], color='yellow')
+# results_df['bear_pennant_total'].plot.bar(ax=ax[1,0], color='green')
+# results_df['bear_pennant_wr'].plot.bar(ax=ax[1,1], color='orange')
 
+# Plotting the results with explicit x-ticks
+ax[0,0].bar(orders, results_df['bull_flag_count'])
+ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
+ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
+ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
+
+# Adjusting x-axis labels
+for a in ax.flat:
+    a.set_xlabel('Order Parameter', fontsize=12)
+    a.set_xticks(orders)
+    a.set_ylabel(a.get_ylabel(), fontsize=12)
+    a.set_xticklabels(orders, rotation=45, ha='right', fontsize=10)
+
+ax[0,0].set_title('Number of Patterns Found', fontsize=14)
+ax[0,0].set_ylabel('Number of Patterns', fontsize=12)
+ax[0,1].set_title('Average Pattern Return', fontsize=14)
+ax[0,1].set_ylabel('Average Log Return', fontsize=12)
+ax[1,0].set_title('Sum of Returns', fontsize=14)
+ax[1,0].set_ylabel('Total Log Return', fontsize=12)
+ax[1,1].set_title('Win Rate', fontsize=14)
+ax[1,1].set_ylabel('Win Rate Percentage', fontsize=12)
+plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+# save plot image
+plt.savefig('plot_images/bear_pennant_performance.png')
+plt.show()

@@ -3,10 +3,14 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 end_date = datetime.today()
-start_date = end_date - timedelta(days=729)
+start_date = end_date - timedelta(days=58)
 
 # Download historical data for EUR/USD
-data = yf.download('EURUSD=X', start=start_date.strftime('%Y-%m-%d'), end=end_date.strftime('%Y-%m-%d'))
+data = yf.download(
+  'EURUSD=X', 
+  start=start_date.strftime('%Y-%m-%d'), 
+  end=end_date.strftime('%Y-%m-%d'),
+  interval='15m')
 
 # Lowercase all column header names
 data.columns = [col.lower() for col in data.columns]
@@ -15,7 +19,10 @@ data.columns = [col.lower() for col in data.columns]
 # Remove the last two columns
 data = data.iloc[:, :-2]
 
-# Save to CSV
-data.to_csv('EURUSD_past_730_days.csv')
+# rearrange columns date,close,open,high,low
+data = data[['close', 'open', 'high', 'low']]
 
-print("Data saved to EURUSD_past_730_days.csv")
+# Save to CSV
+data.to_csv('EURUSD900b.csv')
+
+print("Data saved to EURUSD900b.csv")
