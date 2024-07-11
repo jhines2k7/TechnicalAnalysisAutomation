@@ -200,14 +200,16 @@ results_df = pd.DataFrame({
 # delete the plot_images folder if it exists
 if os.path.exists('plot_images'):
     shutil.rmtree('plot_images')
-    os.makedirs('plot_images')
+
+os.makedirs('plot_images')
 
 if os.path.exists('results'):
     shutil.rmtree('results')
-    os.makedirs('results')
+
+# os.makedirs('results')
 
 # Export results DataFrame to CSV
-# export_to_csv(results_df, 'results_summary.csv')
+# export_to_csv(results_df, 'results/results_summary.csv')
 
 # Plotting Bull Flag Performance
 fig, ax = plt.subplots(2, 2, figsize=(20, 10))
