@@ -36,8 +36,6 @@ if authorized:
     # Real-time trading loop
     # Get the latest price data
     utc_from = datetime.now(timezone.utc) - pd.Timedelta(days=1)  # Fetch the last 5 days of data for pattern detection
-    # rates = mt5.copy_rates_range(symbol, timeframe, utc_from, datetime.utcnow())
-    # rates = mt5.copy_rates_range(symbol, timeframe, utc_from, datetime.now(timezone.utc))
     rates = mt5.copy_rates_from_pos(symbol, timeframe, 0, 500)
 
     if rates is None:
@@ -56,9 +54,6 @@ if authorized:
     data = data[['time', 'close', 'open', 'high', 'low']]
     data['time'] = data['time'].astype('datetime64[s]')
     data = data.set_index('time')
-
-    # data = np.log(data)
-    # dat_slice = data['close'].to_numpy()
 else:
     print("failed to connect at account #{}, error code: {}".format(account, mt5.last_error()))
 
@@ -240,12 +235,6 @@ results_df['bull_flag_avg'].plot.bar(ax=ax[0,1], color='yellow')
 results_df['bull_flag_total'].plot.bar(ax=ax[1,0], color='green')
 results_df['bull_flag_wr'].plot.bar(ax=ax[1,1], color='orange')
 
-# Plotting the results with explicit x-ticks
-# ax[0,0].bar(orders, results_df['bull_flag_count'])
-# ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
-# ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
-# ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
-
 # Adjusting x-axis labels
 for a in ax.flat:
     a.set_xlabel('Order Parameter', fontsize=12)
@@ -273,12 +262,6 @@ results_df['bear_flag_count'].plot.bar(ax=ax[0,0])
 results_df['bear_flag_avg'].plot.bar(ax=ax[0,1], color='yellow')
 results_df['bear_flag_total'].plot.bar(ax=ax[1,0], color='green')
 results_df['bear_flag_wr'].plot.bar(ax=ax[1,1], color='orange')
-
-# Plotting the results with explicit x-ticks
-# ax[0,0].bar(orders, results_df['bear_flag_count'])
-# ax[0,1].bar(orders, results_df['bear_flag_avg'], color='yellow')
-# ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
-# ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
 
 # Adjusting x-axis labels
 for a in ax.flat:
@@ -308,12 +291,6 @@ results_df['bull_pennant_avg'].plot.bar(ax=ax[0,1], color='yellow')
 results_df['bull_pennant_total'].plot.bar(ax=ax[1,0], color='green')
 results_df['bull_pennant_wr'].plot.bar(ax=ax[1,1], color='orange')
 
-# Plotting the results with explicit x-ticks
-# ax[0,0].bar(orders, results_df['bull_flag_count'])
-# ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
-# ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
-# ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
-
 # Adjusting x-axis labels
 for a in ax.flat:
     a.set_xlabel('Order Parameter', fontsize=12)
@@ -341,12 +318,6 @@ results_df['bear_pennant_count'].plot.bar(ax=ax[0,0])
 results_df['bear_pennant_avg'].plot.bar(ax=ax[0,1], color='yellow')
 results_df['bear_pennant_total'].plot.bar(ax=ax[1,0], color='green')
 results_df['bear_pennant_wr'].plot.bar(ax=ax[1,1], color='orange')
-
-# Plotting the results with explicit x-ticks
-# ax[0,0].bar(orders, results_df['bull_flag_count'])
-# ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
-# ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
-# ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
 
 # Adjusting x-axis labels
 for a in ax.flat:
