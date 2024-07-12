@@ -2,10 +2,14 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import mplfinance as mpf
+import logging
+
 from perceptually_important import find_pips
 from rolling_window import rw_top, rw_bottom
 from trendline_automation import fit_trendlines_single
 from dataclasses import dataclass
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
 
 @dataclass
 class FlagPattern:
@@ -31,6 +35,9 @@ class FlagPattern:
     support_slope: float = -1.
     resist_intercept: float = -1.
     resist_slope: float = -1.
+
+    conf_time: str = ''  # New attribute to store confirmation time
+    conf_price: float = -1.0  # New attribute to store confirmation price
 
 def check_bear_pattern_pips(pending: FlagPattern, data: np.array, i:int, order:int):
     
@@ -202,29 +209,39 @@ def find_flags_pennants_pips(data: np.array, order:int):
     bear_pennants = []
     bull_flags = []
     bear_flags = []
-    for i in range(len(data)):
+    log_transformed_data = np.log(data)  # Use log-transformed data
+    closing_prices = log_transformed_data['close'].to_numpy()
+    for i in range(len(closing_prices)):
 
         # Pattern data is organized like so:
-        if rw_top(data, i, order):
-            pending_bear = FlagPattern(i - order, data[i - order])
+        if rw_top(closing_prices, i, order):
+            pending_bear = FlagPattern(i - order, closing_prices[i - order])
+            pending_bear.conf_time = str(data.index[i - order])
+            pending_bear.conf_price = data['close'].iloc[i - order]
         
-        if rw_bottom(data, i, order):
-            pending_bull = FlagPattern(i - order, data[i - order])
+        if rw_bottom(closing_prices, i, order):
+            pending_bull = FlagPattern(i - order, closing_prices[i - order])
+            pending_bull.conf_time = str(data.index[i - order])
+            pending_bull.conf_price = data['close'].iloc[i - order]
 
         if pending_bear is not None:
-            if check_bear_pattern_pips(pending_bear, data, i, order):
+            if check_bear_pattern_pips(pending_bear, closing_prices, i, order):
                 if pending_bear.pennant:
                     bear_pennants.append(pending_bear)
+                    # logging.info(f"Confirmed bear pennant at {pending_bear.conf_time} with price {pending_bear.conf_price}")
                 else:
                     bear_flags.append(pending_bear)
+                    # logging.info(f"Confirmed bear flag at {pending_bear.conf_time} with price {pending_bear.conf_price}")
                 pending_bear = None
 
         if pending_bull is not None:
-            if check_bull_pattern_pips(pending_bull, data, i, order):
+            if check_bull_pattern_pips(pending_bull, closing_prices, i, order):
                 if pending_bull.pennant:
                     bull_pennants.append(pending_bull)
+                    # logging.info(f"Confirmed bull pennant at {pending_bull.conf_time} with price {pending_bull.conf_price}")
                 else:
                     bull_flags.append(pending_bull)
+                    # logging.info(f"Confirmed bull flag at {pending_bull.conf_time} with price {pending_bull.conf_price}")
                 pending_bull = None
 
     return bull_flags, bear_flags, bull_pennants, bear_pennants
@@ -410,8 +427,8 @@ if __name__ == '__main__':
     data = np.log(data)
 
     dat_slice = data['close'].to_numpy()
-    #bull_flags, bear_flags, bull_pennants, bear_pennants  = find_flags_pennants_pips(dat_slice, 12)
-    bull_flags, bear_flags, bull_pennants, bear_pennants  = find_flags_pennants_trendline(dat_slice, 10)
+    bull_flags, bear_flags, bull_pennants, bear_pennants  = find_flags_pennants_pips(dat_slice, 12)
+    # bull_flags, bear_flags, bull_pennants, bear_pennants  = find_flags_pennants_trendline(dat_slice, 10)
 
 
     bull_flag_df = pd.DataFrame()

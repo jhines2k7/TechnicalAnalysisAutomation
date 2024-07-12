@@ -10,14 +10,6 @@ import MetaTrader5 as mt5
 from datetime import datetime, timezone
 from flags_pennants import find_flags_pennants_pips, find_flags_pennants_trendline
 
-def export_to_csv(data, filename):
-    with open(filename, mode='w', newline='') as file:
-        writer = csv.writer(file)
-        headers = data[0].keys()  # Assuming data is a list of dictionaries
-        writer.writerow(headers)
-        for row in data:
-            writer.writerow(row.values())    
-
 # display data on the MetaTrader 5 package
 print("MetaTrader5 package author: ",mt5.__author__)
 print("MetaTrader5 package version: ",mt5.__version__)
@@ -39,13 +31,14 @@ dat_slice = None
 if authorized:
     # Set the symbol and timeframe
     symbol = "EURUSD.sml"
-    timeframe = mt5.TIMEFRAME_M5
+    timeframe = mt5.TIMEFRAME_M1
 
     # Real-time trading loop
     # Get the latest price data
     utc_from = datetime.now(timezone.utc) - pd.Timedelta(days=1)  # Fetch the last 5 days of data for pattern detection
     # rates = mt5.copy_rates_range(symbol, timeframe, utc_from, datetime.utcnow())
-    rates = mt5.copy_rates_range(symbol, timeframe, utc_from, datetime.now(timezone.utc))
+    # rates = mt5.copy_rates_range(symbol, timeframe, utc_from, datetime.now(timezone.utc))
+    rates = mt5.copy_rates_from_pos(symbol, timeframe, 0, 500)
 
     if rates is None:
         print("No data, retrying...")
@@ -64,8 +57,8 @@ if authorized:
     data['time'] = data['time'].astype('datetime64[s]')
     data = data.set_index('time')
 
-    data = np.log(data)
-    dat_slice = data['close'].to_numpy()
+    # data = np.log(data)
+    # dat_slice = data['close'].to_numpy()
 else:
     print("failed to connect at account #{}, error code: {}".format(account, mt5.last_error()))
 
@@ -93,10 +86,12 @@ bull_pennant_total_ret = []
 bear_flag_total_ret = []
 bear_pennant_total_ret = []
 
+log_transformed_data = np.log(data)  # Use log-transformed data
+dat_slice = log_transformed_data['close'].to_numpy()
 
 for order in orders:
-    bull_flags, bear_flags, bull_pennants, bear_pennants  = find_flags_pennants_pips(dat_slice, order)
-    #bull_flags, bear_flags, bull_pennants, bear_pennants  = find_flags_pennants_trendline(dat_slice, order)
+    bull_flags, bear_flags, bull_pennants, bear_pennants  = find_flags_pennants_pips(data, order)
+    # bull_flags, bear_flags, bull_pennants, bear_pennants  = find_flags_pennants_trendline(dat_slice, order)
 
     bull_flag_df = pd.DataFrame()
     bull_pennant_df = pd.DataFrame()
@@ -202,47 +197,25 @@ for order in orders:
         bear_pennant_avg.append(np.nan)
         bear_pennant_wr.append(np.nan)
         bear_pennant_total_ret.append(0)
-    
-
-results_df = pd.DataFrame(index=orders)
-results_df['bull_flag_count'] = bull_flag_count
-results_df['bull_flag_avg'] = bull_flag_avg
-results_df['bull_flag_wr'] = bull_flag_wr
-results_df['bull_flag_total'] = bull_flag_total_ret
-
-results_df['bear_flag_count'] = bear_flag_count
-results_df['bear_flag_avg'] = bear_flag_avg
-results_df['bear_flag_wr'] = bear_flag_wr
-results_df['bear_flag_total'] = bear_flag_total_ret
-
-results_df['bull_pennant_count'] = bull_pennant_count
-results_df['bull_pennant_avg'] = bull_pennant_avg
-results_df['bull_pennant_wr'] = bull_pennant_wr
-results_df['bull_pennant_total'] = bull_pennant_total_ret
-
-results_df['bear_pennant_count'] = bear_pennant_count
-results_df['bear_pennant_avg'] = bear_pennant_avg
-results_df['bear_pennant_wr'] = bear_pennant_wr
-results_df['bear_pennant_total'] = bear_pennant_total_ret
 
 results_df = pd.DataFrame({
     'order': orders,
-    'bull_flag_count': np.random.randint(50, 150, size=len(orders)),
-    'bull_flag_avg': np.random.uniform(-0.01, 0.01, size=len(orders)),
-    'bull_flag_total': np.random.uniform(-1, 1, size=len(orders)),
-    'bull_flag_wr': np.random.uniform(0.3, 0.7, size=len(orders)),
-    'bull_pennant_count': np.random.randint(50, 150, size=len(orders)),
-    'bull_pennant_avg': np.random.uniform(-0.01, 0.01, size=len(orders)),
-    'bull_pennant_total': np.random.uniform(-1, 1, size=len(orders)),
-    'bull_pennant_wr': np.random.uniform(0.3, 0.7, size=len(orders)),
-    'bear_flag_count': np.random.randint(50, 150, size=len(orders)),
-    'bear_flag_avg': np.random.uniform(-0.01, 0.01, size=len(orders)),
-    'bear_flag_total': np.random.uniform(-1, 1, size=len(orders)),
-    'bear_flag_wr': np.random.uniform(0.3, 0.7, size=len(orders)),
-    'bear_pennant_count': np.random.randint(50, 150, size=len(orders)),
-    'bear_pennant_avg': np.random.uniform(-0.01, 0.01, size=len(orders)),
-    'bear_pennant_total': np.random.uniform(-1, 1, size=len(orders)),
-    'bear_pennant_wr': np.random.uniform(0.3, 0.7, size=len(orders))
+    'bull_flag_count': bull_flag_count,
+    'bull_flag_avg': bull_flag_avg,
+    'bull_flag_total': bull_flag_total_ret,
+    'bull_flag_wr': bull_flag_wr,
+    'bull_pennant_count': bull_pennant_count,
+    'bull_pennant_avg': bull_pennant_avg,
+    'bull_pennant_total': bull_pennant_total_ret,
+    'bull_pennant_wr': bull_pennant_wr,
+    'bear_flag_count': bear_flag_count,
+    'bear_flag_avg': bear_flag_avg,
+    'bear_flag_total': bear_flag_total_ret,
+    'bear_flag_wr': bear_flag_wr,
+    'bear_pennant_count': bear_pennant_count,
+    'bear_pennant_avg': bear_pennant_avg,
+    'bear_pennant_total': bear_pennant_total_ret,
+    'bear_pennant_wr': bear_pennant_wr
 })
 
 # delete the plot_images folder if it exists
@@ -254,24 +227,24 @@ os.makedirs('plot_images')
 if os.path.exists('results'):
     shutil.rmtree('results')
 
-# os.makedirs('results')
+os.makedirs('results')
 
 # Export results DataFrame to CSV
-# export_to_csv(results_df, 'results/results_summary.csv')
+results_df.to_csv('results/results_summary.csv')
 
 # Plotting Bull Flag Performance
 fig, ax = plt.subplots(2, 2, figsize=(20, 10))
 fig.suptitle("Bull Flag Performance", fontsize=20)
-# results_df['bull_flag_count'].plot.bar(ax=ax[0,0])
-# results_df['bull_flag_avg'].plot.bar(ax=ax[0,1], color='yellow')
-# results_df['bull_flag_total'].plot.bar(ax=ax[1,0], color='green')
-# results_df['bull_flag_wr'].plot.bar(ax=ax[1,1], color='orange')
+results_df['bull_flag_count'].plot.bar(ax=ax[0,0])
+results_df['bull_flag_avg'].plot.bar(ax=ax[0,1], color='yellow')
+results_df['bull_flag_total'].plot.bar(ax=ax[1,0], color='green')
+results_df['bull_flag_wr'].plot.bar(ax=ax[1,1], color='orange')
 
 # Plotting the results with explicit x-ticks
-ax[0,0].bar(orders, results_df['bull_flag_count'])
-ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
-ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
-ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
+# ax[0,0].bar(orders, results_df['bull_flag_count'])
+# ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
+# ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
+# ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
 
 # Adjusting x-axis labels
 for a in ax.flat:
@@ -296,16 +269,16 @@ plt.show()
 # Plotting Bear Flag Performance
 fig, ax = plt.subplots(2, 2, figsize=(20, 10))
 fig.suptitle("Bear Flag Performance", fontsize=20)
-# results_df['bear_flag_count'].plot.bar(ax=ax[0,0])
-# results_df['bear_flag_avg'].plot.bar(ax=ax[0,1], color='yellow')
-# results_df['bear_flag_total'].plot.bar(ax=ax[1,0], color='green')
-# results_df['bear_flag_wr'].plot.bar(ax=ax[1,1], color='orange')
+results_df['bear_flag_count'].plot.bar(ax=ax[0,0])
+results_df['bear_flag_avg'].plot.bar(ax=ax[0,1], color='yellow')
+results_df['bear_flag_total'].plot.bar(ax=ax[1,0], color='green')
+results_df['bear_flag_wr'].plot.bar(ax=ax[1,1], color='orange')
 
 # Plotting the results with explicit x-ticks
-ax[0,0].bar(orders, results_df['bull_flag_count'])
-ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
-ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
-ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
+# ax[0,0].bar(orders, results_df['bear_flag_count'])
+# ax[0,1].bar(orders, results_df['bear_flag_avg'], color='yellow')
+# ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
+# ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
 
 # Adjusting x-axis labels
 for a in ax.flat:
@@ -330,16 +303,16 @@ plt.show()
 # Plotting Bull Pennant Performance
 fig, ax = plt.subplots(2, 2, figsize=(20, 10))
 fig.suptitle("Bull Pennant Performance", fontsize=20)
-# results_df['bull_pennant_count'].plot.bar(ax=ax[0,0])
-# results_df['bull_pennant_avg'].plot.bar(ax=ax[0,1], color='yellow')
-# results_df['bull_pennant_total'].plot.bar(ax=ax[1,0], color='green')
-# results_df['bull_pennant_wr'].plot.bar(ax=ax[1,1], color='orange')
+results_df['bull_pennant_count'].plot.bar(ax=ax[0,0])
+results_df['bull_pennant_avg'].plot.bar(ax=ax[0,1], color='yellow')
+results_df['bull_pennant_total'].plot.bar(ax=ax[1,0], color='green')
+results_df['bull_pennant_wr'].plot.bar(ax=ax[1,1], color='orange')
 
 # Plotting the results with explicit x-ticks
-ax[0,0].bar(orders, results_df['bull_flag_count'])
-ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
-ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
-ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
+# ax[0,0].bar(orders, results_df['bull_flag_count'])
+# ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
+# ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
+# ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
 
 # Adjusting x-axis labels
 for a in ax.flat:
@@ -364,16 +337,16 @@ plt.show()
 # Plotting Bear Pennant Performance
 fig, ax = plt.subplots(2, 2, figsize=(20, 10))
 fig.suptitle("Bear Pennant Performance", fontsize=20)
-# results_df['bear_pennant_count'].plot.bar(ax=ax[0,0])
-# results_df['bear_pennant_avg'].plot.bar(ax=ax[0,1], color='yellow')
-# results_df['bear_pennant_total'].plot.bar(ax=ax[1,0], color='green')
-# results_df['bear_pennant_wr'].plot.bar(ax=ax[1,1], color='orange')
+results_df['bear_pennant_count'].plot.bar(ax=ax[0,0])
+results_df['bear_pennant_avg'].plot.bar(ax=ax[0,1], color='yellow')
+results_df['bear_pennant_total'].plot.bar(ax=ax[1,0], color='green')
+results_df['bear_pennant_wr'].plot.bar(ax=ax[1,1], color='orange')
 
 # Plotting the results with explicit x-ticks
-ax[0,0].bar(orders, results_df['bull_flag_count'])
-ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
-ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
-ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
+# ax[0,0].bar(orders, results_df['bull_flag_count'])
+# ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
+# ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
+# ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
 
 # Adjusting x-axis labels
 for a in ax.flat:
