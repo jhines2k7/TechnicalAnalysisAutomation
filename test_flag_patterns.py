@@ -262,22 +262,23 @@ if os.path.exists('results'):
 # Plotting Bull Flag Performance
 fig, ax = plt.subplots(2, 2, figsize=(20, 10))
 fig.suptitle("Bull Flag Performance", fontsize=20)
-results_df['bull_flag_count'].plot.bar(ax=ax[0,0])
-results_df['bull_flag_avg'].plot.bar(ax=ax[0,1], color='yellow')
-results_df['bull_flag_total'].plot.bar(ax=ax[1,0], color='green')
-results_df['bull_flag_wr'].plot.bar(ax=ax[1,1], color='orange')
+# results_df['bull_flag_count'].plot.bar(ax=ax[0,0])
+# results_df['bull_flag_avg'].plot.bar(ax=ax[0,1], color='yellow')
+# results_df['bull_flag_total'].plot.bar(ax=ax[1,0], color='green')
+# results_df['bull_flag_wr'].plot.bar(ax=ax[1,1], color='orange')
 
 # Plotting the results with explicit x-ticks
-# ax[0,0].bar(orders, results_df['bull_flag_count'])
-# ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
-# ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
-# ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
+ax[0,0].bar(orders, results_df['bull_flag_count'])
+ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
+ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
+ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
 
 # Adjusting x-axis labels
 for a in ax.flat:
-    a.set_xlabel('Order Parameter', fontsize=12)    
+    a.set_xlabel('Order Parameter', fontsize=12)
+    a.set_xticks(orders)
     a.set_ylabel(a.get_ylabel(), fontsize=12)
-    a.set_xticklabels(range(len(orders)), rotation=45, ha='right', fontsize=10)
+    a.set_xticklabels(orders, rotation=45, ha='right', fontsize=10)
 
 ax[0,0].set_title('Number of Patterns Found', fontsize=14)
 ax[0,0].set_ylabel('Number of Patterns', fontsize=12)
@@ -295,22 +296,23 @@ plt.show()
 # Plotting Bear Flag Performance
 fig, ax = plt.subplots(2, 2, figsize=(20, 10))
 fig.suptitle("Bear Flag Performance", fontsize=20)
-results_df['bear_flag_count'].plot.bar(ax=ax[0,0])
-results_df['bear_flag_avg'].plot.bar(ax=ax[0,1], color='yellow')
-results_df['bear_flag_total'].plot.bar(ax=ax[1,0], color='green')
-results_df['bear_flag_wr'].plot.bar(ax=ax[1,1], color='orange')
+# results_df['bear_flag_count'].plot.bar(ax=ax[0,0])
+# results_df['bear_flag_avg'].plot.bar(ax=ax[0,1], color='yellow')
+# results_df['bear_flag_total'].plot.bar(ax=ax[1,0], color='green')
+# results_df['bear_flag_wr'].plot.bar(ax=ax[1,1], color='orange')
 
 # Plotting the results with explicit x-ticks
-# ax[0,0].bar(orders, results_df['bull_flag_count'])
-# ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
-# ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
-# ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
+ax[0,0].bar(orders, results_df['bull_flag_count'])
+ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
+ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
+ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
 
 # Adjusting x-axis labels
 for a in ax.flat:
-    a.set_xlabel('Order Parameter', fontsize=12)    
+    a.set_xlabel('Order Parameter', fontsize=12)
+    a.set_xticks(orders)
     a.set_ylabel(a.get_ylabel(), fontsize=12)
-    a.set_xticklabels(range(len(orders)), rotation=45, ha='right', fontsize=10)
+    a.set_xticklabels(orders, rotation=45, ha='right', fontsize=10)
 
 ax[0,0].set_title('Number of Patterns Found', fontsize=14)
 ax[0,0].set_ylabel('Number of Patterns', fontsize=12)
@@ -328,22 +330,23 @@ plt.show()
 # Plotting Bull Pennant Performance
 fig, ax = plt.subplots(2, 2, figsize=(20, 10))
 fig.suptitle("Bull Pennant Performance", fontsize=20)
-results_df['bull_pennant_count'].plot.bar(ax=ax[0,0])
-results_df['bull_pennant_avg'].plot.bar(ax=ax[0,1], color='yellow')
-results_df['bull_pennant_total'].plot.bar(ax=ax[1,0], color='green')
-results_df['bull_pennant_wr'].plot.bar(ax=ax[1,1], color='orange')
+# results_df['bull_pennant_count'].plot.bar(ax=ax[0,0])
+# results_df['bull_pennant_avg'].plot.bar(ax=ax[0,1], color='yellow')
+# results_df['bull_pennant_total'].plot.bar(ax=ax[1,0], color='green')
+# results_df['bull_pennant_wr'].plot.bar(ax=ax[1,1], color='orange')
 
 # Plotting the results with explicit x-ticks
-# ax[0,0].bar(orders, results_df['bull_flag_count'])
-# ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
-# ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
-# ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
+ax[0,0].bar(orders, results_df['bull_flag_count'])
+ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
+ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
+ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
 
 # Adjusting x-axis labels
 for a in ax.flat:
-    a.set_xlabel('Order Parameter', fontsize=12)    
+    a.set_xlabel('Order Parameter', fontsize=12)
+    a.set_xticks(orders)
     a.set_ylabel(a.get_ylabel(), fontsize=12)
-    a.set_xticklabels(range(len(orders)), rotation=45, ha='right', fontsize=10)
+    a.set_xticklabels(orders, rotation=45, ha='right', fontsize=10)
 
 ax[0,0].set_title('Number of Patterns Found', fontsize=14)
 ax[0,0].set_ylabel('Number of Patterns', fontsize=12)
@@ -361,22 +364,23 @@ plt.show()
 # Plotting Bear Pennant Performance
 fig, ax = plt.subplots(2, 2, figsize=(20, 10))
 fig.suptitle("Bear Pennant Performance", fontsize=20)
-results_df['bear_pennant_count'].plot.bar(ax=ax[0,0])
-results_df['bear_pennant_avg'].plot.bar(ax=ax[0,1], color='yellow')
-results_df['bear_pennant_total'].plot.bar(ax=ax[1,0], color='green')
-results_df['bear_pennant_wr'].plot.bar(ax=ax[1,1], color='orange')
+# results_df['bear_pennant_count'].plot.bar(ax=ax[0,0])
+# results_df['bear_pennant_avg'].plot.bar(ax=ax[0,1], color='yellow')
+# results_df['bear_pennant_total'].plot.bar(ax=ax[1,0], color='green')
+# results_df['bear_pennant_wr'].plot.bar(ax=ax[1,1], color='orange')
 
 # Plotting the results with explicit x-ticks
-# ax[0,0].bar(orders, results_df['bull_flag_count'])
-# ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
-# ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
-# ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
+ax[0,0].bar(orders, results_df['bull_flag_count'])
+ax[0,1].bar(orders, results_df['bull_flag_avg'], color='yellow')
+ax[1,0].bar(orders, results_df['bull_flag_total'], color='green')
+ax[1,1].bar(orders, results_df['bull_flag_wr'], color='orange')
 
 # Adjusting x-axis labels
 for a in ax.flat:
-    a.set_xlabel('Order Parameter', fontsize=12)    
+    a.set_xlabel('Order Parameter', fontsize=12)
+    a.set_xticks(orders)
     a.set_ylabel(a.get_ylabel(), fontsize=12)
-    a.set_xticklabels(range(len(orders)), rotation=45, ha='right', fontsize=10)
+    a.set_xticklabels(orders, rotation=45, ha='right', fontsize=10)
 
 ax[0,0].set_title('Number of Patterns Found', fontsize=14)
 ax[0,0].set_ylabel('Number of Patterns', fontsize=12)
