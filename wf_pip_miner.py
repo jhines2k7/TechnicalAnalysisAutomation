@@ -46,7 +46,18 @@ class WFPIPMiner:
         
         return self._curr_sig
 
+    def plot_patterns(self, arr: np.array, start_idx: int, end_idx: int, dist_measure: int):
+        data_segment = arr[start_idx:end_idx]
+        pips = find_pips(data_segment, self._n_pips, dist_measure)
 
+        plt.figure(figsize=(14, 7))
+        plt.plot(data_segment, label='Price Data')
+        plt.scatter(pips.keys(), pips.values(), color='red', label='PIPs', zorder=5)
+        plt.title('PIP Patterns')
+        plt.xlabel('Index')
+        plt.ylabel('Price')
+        plt.legend()
+        plt.show()
 
 if __name__ == '__main__':
     data = pd.read_csv('BTCUSDT3600.csv')
@@ -57,11 +68,13 @@ if __name__ == '__main__':
     arr = data['close'].to_numpy()
     wf_miner = WFPIPMiner(
             n_pips=5, 
-            lookback=24, 
-            hold_period=6, 
-            train_size=24 * 365 * 2, 
-            step_size=24 * 365 * 1
+            lookback=20, 
+            hold_period=5, 
+            train_size=200, 
+            step_size=10
         )
+
+    wf_miner.plot_patterns(arr, 0, 500, 1)
     
     sig = [0] * len(arr)
     for i in range(len(arr)):
