@@ -2,3 +2,4 @@ __pycache__/
 .tech_analysis_automation
 .vscode
 *.csv
+plot_images
