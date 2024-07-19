@@ -57,6 +57,36 @@ def plot_patterns_zoomed(data, patterns, title, filename):
     if not patterns:
         print(f"No patterns detected for {title}")
 
+def plot_minute(df, start_date, plot_dir):
+    end_date = start_date + pd.DateOffset(minutes=1)
+    df_zoomed = df.loc[start_date:end_date]
+
+    # Detect flag and pennant patterns in the zoomed data
+    data_zoomed = df_zoomed['close'].to_numpy()
+    order = 10  # You can adjust the order as needed
+    bull_flags_zoomed, bear_flags_zoomed, bull_pennants_zoomed, bear_pennants_zoomed = find_flags_pennants_pips(data_zoomed, order)
+    
+    print(f"Number of bull flags: {len(bull_flags_zoomed)}")
+    print(f"Number of bear flags: {len(bear_flags_zoomed)}")
+    print(f"Number of bull pennants: {len(bull_pennants_zoomed)}")
+    print(f"Number of bear pennants: {len(bear_pennants_zoomed)}")
+
+    # Label patterns with type
+    for pattern in bull_flags_zoomed:
+        pattern.type = 'bull_flag'
+    for pattern in bear_flags_zoomed:
+        pattern.type = 'bear_flag'
+    for pattern in bull_pennants_zoomed:
+        pattern.type = 'bull_pennant'
+    for pattern in bear_pennants_zoomed:
+        pattern.type = 'bear_pennant'
+    
+    # Plot and save the patterns
+    flag_filename = os.path.join(plot_dir, f'flag_patterns_{start_date.date()}_to_{end_date.date()}.png')
+    pennant_filename = os.path.join(plot_dir, f'pennant_patterns_{start_date.date()}_to_{end_date.date()}.png')
+    plot_patterns_zoomed(df_zoomed, bull_flags_zoomed + bear_flags_zoomed, f'Flag Patterns ({start_date.date()} to {end_date.date()})', flag_filename)
+    plot_patterns_zoomed(df_zoomed, bull_pennants_zoomed + bear_pennants_zoomed, f'Pennant Patterns ({start_date.date()} to {end_date.date()})', pennant_filename)
+        
 def plot_month(df, start_date, plot_dir):
     end_date = start_date + pd.DateOffset(months=1)
     df_zoomed = df.loc[start_date:end_date]
@@ -119,7 +149,7 @@ def plot_week(df, start_date, plot_dir):
 
 def main():
     # Load the BTCUSDT3600.csv file
-    df = pd.read_csv('BTCUSDT3600.csv')
+    df = pd.read_csv('EURUSD_1m_past_7_days.csv')
     df['date'] = pd.to_datetime(df['date'])
     df.set_index('date', inplace=True)
 
@@ -130,7 +160,7 @@ def main():
     os.makedirs(plot_dir)
 
     # Choose the plotting interval
-    interval = 'weekly'  # Change to 'monthly' for monthly plots
+    interval = 'minute'  # Change to 'monthly' for monthly plots
 
     if interval == 'monthly':
         # Plot data for each month starting from Jan 1, 2022
@@ -146,6 +176,12 @@ def main():
         for i in range(num_weeks):
             plot_week(df, start_date, plot_dir)
             start_date += pd.DateOffset(weeks=1)
-
+    elif interval == 'minute':
+        # Plot data for each minute starting from Jan 1, 2022, 00:00
+        start_date = pd.Timestamp('2024-07-15', tz='UTC')
+        num_minutes = 60  # Change this number to generate more plots
+        for i in range(num_minutes):
+            plot_minute(df, start_date, plot_dir)
+            start_date += pd.DateOffset(minutes=1)
 if __name__ == "__main__":
     main()

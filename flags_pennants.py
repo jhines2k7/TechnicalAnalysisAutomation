@@ -38,18 +38,18 @@ def check_bear_pattern_pips(pending: FlagPattern, data: np.array, i:int, order:i
     data_slice = data[pending.base_x: i + 1] # i + 1 includes current price
     min_i = data_slice.argmin() + pending.base_x # Min index since local top
     
-    if i - min_i < max(5, order * 0.5): # Far enough from max to draw potential flag/pennant
+    if i - min_i < max(5, order * 0.8): # Far enough from max to draw potential flag/pennant
         return False
     
     # Test flag width / height 
     pole_width = min_i - pending.base_x
     flag_width = i - min_i
-    if flag_width > pole_width * 0.5: # Flag should be less than half the width of pole
+    if flag_width > pole_width * 0.8: # Flag should be less than half the width of pole
         return False
 
     pole_height = pending.base_y - data[min_i] 
     flag_height = data[min_i:i+1].max() - data[min_i] 
-    if flag_height > pole_height * 0.5: # Flag should smaller vertically than preceding trend
+    if flag_height > pole_height * 0.8: # Flag should smaller vertically than preceding trend
         return False
 
     # If here width/height are OK.
@@ -122,16 +122,16 @@ def check_bull_pattern_pips(pending: FlagPattern, data: np.array, i:int, order:i
     max_i = data_slice.argmax() + pending.base_x # Max index since bottom
     pole_width = max_i - pending.base_x
     
-    if i - max_i < max(5, order * 0.5): # Far enough from max to draw potential flag/pennant
+    if i - max_i < max(5, order * 0.8): # Far enough from max to draw potential flag/pennant
         return False
 
     flag_width = i - max_i
-    if flag_width > pole_width * 0.5: # Flag should be less than half the width of pole
+    if flag_width > pole_width * 0.8: # Flag should be less than half the width of pole
         return False
 
     pole_height = data[max_i] - pending.base_y 
     flag_height = data[max_i] - data[max_i:i+1].min()
-    if flag_height > pole_height * 0.5: # Flag should smaller vertically than preceding trend
+    if flag_height > pole_height * 0.8: # Flag should smaller vertically than preceding trend
         return False
 
     pips_x, pips_y = find_pips(data[max_i:i+1], 5, 3) # Finds pips between max and current index (inclusive)
