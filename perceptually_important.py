@@ -24,7 +24,7 @@ def find_pips(data: np.array, n_pips: int, dist_measure: int):
             left_adj = k
             right_adj = k + 1
 
-            time_diff = pips_x[right_adj] - pips_x[left_adj]
+            time_diff = pips_x[right_adj] - pips_x[left_adj] + 1e-6
             price_diff = pips_y[right_adj] - pips_y[left_adj]
             slope = price_diff / time_diff
             intercept = pips_y[left_adj] - pips_x[left_adj] * slope;
