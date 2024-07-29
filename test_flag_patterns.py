@@ -5,9 +5,10 @@ import mplfinance as mpf
 from flags_pennants import find_flags_pennants_pips, find_flags_pennants_trendline
     
 
-data = pd.read_csv('BTCUSDT3600.csv')
-data['date'] = data['date'].astype('datetime64[s]')
-data = data.set_index('date')
+data = pd.read_csv('GBPUSD_M1_10000.csv')
+# data = pd.read_csv('BTCUSDT3600.csv')
+# data['date'] = data['date'].astype('datetime64[s]')
+data = data.set_index('time')
 
 data = np.log(data)
 dat_slice = data['close'].to_numpy()
@@ -165,6 +166,9 @@ results_df['bear_pennant_count'] = bear_pennant_count
 results_df['bear_pennant_avg'] = bear_pennant_avg
 results_df['bear_pennant_wr'] = bear_pennant_wr
 results_df['bear_pennant_total'] = bear_pennant_total_ret
+
+# save to csv
+results_df.to_csv('flag_pennant_results_GBPUSD_10000.csv')
 
 # Plot bull flag results
 plt.style.use('dark_background')
